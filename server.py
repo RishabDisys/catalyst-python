@@ -1,5 +1,5 @@
 from flask import Flask, request
-
+import requests
 from pynput import mouse
 import time
 import json
@@ -35,6 +35,9 @@ def handle_start():
 @app.route('/end-session', methods=['GET'])
 def handle_end():
     global session_data
+    session_data['sessionId'] = request.args.get('id')
+    session_data['endedAt'] = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+    response = requests.put('https://appili.gives/items', json=session_data)
     session_data = {}
     mouse_listener.stop()
     return '200'

@@ -11,9 +11,12 @@ session_data = {
     "mouseClicks": []
 }
 
+# Flag to indicate if the program should continue listening
+should_listen = True
+
 # Mouse Click Listener
 def on_click(x, y, button, pressed):
-    if pressed:
+    if pressed and should_listen:
         print(f'Mouse clicked at ({x}, {y}) with {button}')
         timestamp = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%fZ')
         click_type = str(button).split('.')[1].capitalize()
@@ -26,12 +29,15 @@ def on_click(x, y, button, pressed):
 
 # Keyboard Listener for Esc key
 def on_key_press(key):
+    global should_listen
+    
     try:
         print(f'Key pressed: {key.char}')
     except AttributeError:
         print(f'Special key pressed: {key}')
         
     if key == keyboard.Key.esc:
+        should_listen = False
         session_data["endedAt"] = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%fZ')
         # Print the collected event data in JSON format
         print(json.dumps(session_data, indent=2))

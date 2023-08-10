@@ -1,9 +1,9 @@
 from flask import Flask, request
-import requests
 from pynput import mouse
-import time
-import json
+from infi.systray import SysTrayIcon
 from datetime import datetime
+
+import requests, os, signal
 
 app = Flask(__name__)
 
@@ -37,10 +37,17 @@ def handle_end():
     global session_data
     session_data['sessionId'] = request.args.get('id')
     session_data['endedAt'] = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+
     response = requests.put('https://appili.gives/items', json=session_data)
     session_data = {}
     mouse_listener.stop()
     return '200'
 
 if __name__ == '__main__':
+    def quit(systray):
+        systray.shutdown()
+
+    menu_options = ()
+    systray = SysTrayIcon("favicon.ico", "Dexian Catalyst", menu_options)
+    systray.start()
     app.run()

@@ -2,7 +2,7 @@ from flask import Flask, request
 from pynput import mouse
 from infi.systray import SysTrayIcon
 from datetime import datetime
-
+from PIL import ImageGrab,Image
 import requests, os, signal
 
 app = Flask(__name__)
@@ -12,11 +12,19 @@ def on_click(x, y, button, pressed):
         print(f'Mouse clicked at ({x}, {y}) with {button}')
         timestamp = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%fZ')
         click_type = str(button).split('.')[1].capitalize()
+
+        screenshot = ImageGrab.grab()
+        screenshot_filename = f'screenshot_{timestamp}.png'
+        current_dir = os.getcwd()
+        screenshot_path = os.path.join(current_dir, screenshot_filename)
+        screenshot.save(screenshot_path)
+
         session_data["mouseClicks"].append({
             "timeStamp": timestamp,
             "clickType": click_type,
             "xLocation": x,
-            "yLocation": y
+            "yLocation": y,
+            "screenshot": screenshot_path  # Add the screenshot path to session_data
         })
 
 session_data = {}

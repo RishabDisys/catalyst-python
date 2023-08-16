@@ -18,7 +18,7 @@ def on_click(x, y, button, pressed):
         timestamp = datetime.utcnow().strftime('%Y-%m-%dT%H-%M-%S.%fZ')
         click_type = str(button).split('.')[1].capitalize()
 
-        current_dir = os.getcwd()
+        current_dir = os.getcwd()                                            #(it should be session id)
         screenshot_filename = f'{timestamp}.png'
         screenshotFolder = os.path.join(current_dir, 'screenshots')
         sessionSubFolder = os.path.join(current_dir, 'screenshots', sessionId)
@@ -63,6 +63,20 @@ def handle_end():
     mouse_listener.stop()
     return '200'
 
+@app.route('/set-session', methods=['POST'])
+def handle_set_session():
+    global sessionId
+
+    session_id = request.form.get('session-id')
+    sessionId = session_id
+
+    current_dir = os.getcwd()
+    session_sub_folder = os.path.join(current_dir, 'screenshots', sessionId)
+    if not os.path.exists(session_sub_folder):
+        os.mkdir(session_sub_folder)
+
+    return '200'    
+
 if __name__ == '__main__':
     def quit(systray):
         systray.shutdown()
@@ -70,4 +84,7 @@ if __name__ == '__main__':
     menu_options = ()
     systray = SysTrayIcon("favicon.ico", "Dexian Catalyst", menu_options)
     systray.start()
+    @app.route('/')
+    def index():
+        return render_template('index.html')
     app.run()

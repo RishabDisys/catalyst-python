@@ -4,6 +4,7 @@ from infi.systray import SysTrayIcon
 from datetime import datetime
 from PIL import ImageGrab
 import requests, os
+import base64
 
 app = Flask(__name__)
 
@@ -26,15 +27,26 @@ def on_click(x, y, button, pressed):
         if not os.path.exists(sessionSubFolder): os.mkdir(sessionSubFolder)
 
         screenshot_path = os.path.join(current_dir, 'screenshots', sessionId, screenshot_filename)
+
+        screenshot = ImageGrab.grab()
+        screenshot.save(screenshot_path)
+
+        with open(screenshot_path, 'rb') as image_file:
+            image_data = image_file.read()
+            # Encode the binary image data into Base64
+            base64_encoded = base64.b64encode(image_data)
+            # Convert the Base64 bytes to a string
+            base64_encoded_str = base64_encoded.decode('utf-8')
+
         session_data["mouseClicks"].append({
             "timeStamp": timestamp,
             "clickType": click_type,
             "xLocation": x,
             "yLocation": y,
-            "fileName": screenshot_filename 
+            "fileName": screenshot_filename,
+            "imageData": base64_encoded_str
         })
-        screenshot = ImageGrab.grab()
-        screenshot.save(screenshot_path)
+        
 
 mouse_listener = mouse.Listener(on_click=on_click)
 

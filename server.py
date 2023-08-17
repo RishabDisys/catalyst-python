@@ -1,10 +1,12 @@
-from flask import Flask, request, send_file, render_template
+from flask import Flask, request, render_template
 from flask_cors import CORS
 from pynput import mouse 
 from infi.systray import SysTrayIcon
 from datetime import datetime
 from PIL import ImageGrab
 import requests, os
+
+import base64
 
 app = Flask(__name__,template_folder='.')
 CORS(app)
@@ -20,7 +22,7 @@ def on_click(x, y, button, pressed):
         timestamp = datetime.utcnow().strftime('%Y-%m-%dT%H-%M-%S.%fZ')
         click_type = str(button).split('.')[1].capitalize()
 
-        current_dir = os.getcwd()                                            #(it should be session id)
+        current_dir = os.getcwd()                                            
         screenshot_filename = f'{timestamp}.png'
         screenshotFolder = os.path.join(current_dir, 'screenshots')
         sessionSubFolder = os.path.join(current_dir, 'screenshots', sessionId)
@@ -73,22 +75,9 @@ def handle_image():
     sessionId = request.args.get('id')
     filename = request.args.get('file')
     screenshot_path = os.path.join(os.getcwd() , 'screenshots', sessionId, filename + '.png')
-    return send_file(screenshot_path, mimetype='image/png')
-
-
-@app.route('/set-session', methods=['POST'])
-def handle_set_session():
-    global sessionId
-
-    session_id = request.form.get('session-id')
-    sessionId = session_id
-
-    current_dir = os.getcwd()
-    session_sub_folder = os.path.join(current_dir, 'screenshots', sessionId)
-    if not os.path.exists(session_sub_folder):
-        os.mkdir(session_sub_folder)
-
-    return '200'    
+    with open(screenshot_path, "rb") as image_file:
+        base64_encoded = base64.b64encode(image_file.read())
+        return base64_encoded.decode("utf-8")  
 
 @app.route('/')
 def index():

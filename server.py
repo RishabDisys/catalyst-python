@@ -53,7 +53,10 @@ def handle_start():
         'startedAt': datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
         'mouseClicks': [],
     } 
-    return '200'
+   
+    start_session_message = "The session is successfully started, with session ID = "+ sessionId + " The Response is 200."
+    print (start_session_message)
+    return start_session_message
 
 @app.route('/end-session', methods=['GET'])
 def handle_end():
@@ -64,7 +67,10 @@ def handle_end():
     response = requests.put('https://appili.gives/items', json=session_data)
     session_data, sessionId = {}, ''
     mouse_listener.stop()
-    return '200'
+
+    end_session_message = "The session is successfully ended, with session ID = "+ sessionId + " The Response is 200."
+    print (end_session_message)
+    return end_session_message
 
 @app.route('/set-session', methods=['POST'])
 def handle_set_session():

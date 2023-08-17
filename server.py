@@ -1,12 +1,11 @@
-from flask import Flask, request
+from flask import Flask, request,render_template
 from pynput import mouse
 from infi.systray import SysTrayIcon
 from datetime import datetime
 from PIL import ImageGrab
 import requests, os
-import base64
 
-app = Flask(__name__)
+app = Flask(__name__,template_folder='.')
 
 sessionId = ''
 session_data = {}
@@ -31,20 +30,12 @@ def on_click(x, y, button, pressed):
         screenshot = ImageGrab.grab()
         screenshot.save(screenshot_path)
 
-        with open(screenshot_path, 'rb') as image_file:
-            image_data = image_file.read()
-            # Encode the binary image data into Base64
-            base64_encoded = base64.b64encode(image_data)
-            # Convert the Base64 bytes to a string
-            base64_encoded_str = base64_encoded.decode('utf-8')
-
         session_data["mouseClicks"].append({
             "timeStamp": timestamp,
             "clickType": click_type,
             "xLocation": x,
             "yLocation": y,
-            "fileName": screenshot_filename,
-            "imageData": base64_encoded_str
+            "filePath": screenshot_path
         })
         
 
@@ -89,14 +80,14 @@ def handle_set_session():
 
     return '200'    
 
+@app.route('/')
+def index():
+    return render_template('index.html')
+
 if __name__ == '__main__':
     def quit(systray):
         systray.shutdown()
-
     menu_options = ()
     systray = SysTrayIcon("favicon.ico", "Dexian Catalyst", menu_options)
     systray.start()
-    @app.route('/')
-    def index():
-        return render_template('index.html')
     app.run()

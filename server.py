@@ -1,5 +1,5 @@
-from flask import Flask, request,render_template
-from pynput import mouse
+from flask import Flask, request, send_file, render_template
+from pynput import mouse 
 from infi.systray import SysTrayIcon
 from datetime import datetime
 from PIL import ImageGrab
@@ -65,6 +65,14 @@ def handle_end():
     session_data, sessionId = {}, ''
     mouse_listener.stop()
     return '200'
+
+@app.route('/get-image')
+def handle_image():
+    sessionId = request.args.get('id')
+    filename = request.args.get('file')
+    screenshot_path = os.path.join(os.getcwd() , 'screenshots', sessionId, filename + '.png')
+    return send_file(screenshot_path, mimetype='image/png')
+
 
 @app.route('/set-session', methods=['POST'])
 def handle_set_session():

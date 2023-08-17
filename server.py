@@ -1,4 +1,5 @@
 from flask import Flask, request, send_file, render_template
+from flask_cors import CORS
 from pynput import mouse 
 from infi.systray import SysTrayIcon
 from datetime import datetime
@@ -6,6 +7,7 @@ from PIL import ImageGrab
 import requests, os
 
 app = Flask(__name__,template_folder='.')
+CORS(app)
 
 sessionId = ''
 session_data = {}

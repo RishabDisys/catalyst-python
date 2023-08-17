@@ -54,27 +54,23 @@ def handle_start():
         'mouseClicks': [],
     } 
    
-    start_session_message = "The session is successfully started, with session ID = "+ str(sessionId) + " The Response is 200."
+    start_session_message = "The session is successfully started, with session ID = "+ sessionId + " The Response is 200."
     print (start_session_message)
-    print (sessionId)
-    return [start_session_message, sessionId]
+    return start_session_message
 
 @app.route('/end-session', methods=['GET'])
 def handle_end():
     global session_data
     global sessionId
 
-    end_session_message = "The session is successfully ended, with session ID = "+ str(sessionId) + " The Response is 200."
-    print (end_session_message)
-    print (sessionId)
-
     session_data['endedAt'] = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%fZ')
     response = requests.put('https://appili.gives/items', json=session_data)
     session_data, sessionId = {}, ''
     mouse_listener.stop()
 
-   
-    return [end_session_message]
+    end_session_message = "The session is successfully ended, with session ID = "+ sessionId + " The Response is 200."
+    print (end_session_message)
+    return end_session_message
 
 @app.route('/set-session', methods=['POST'])
 def handle_set_session():

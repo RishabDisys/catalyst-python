@@ -4,20 +4,21 @@ from pynput import mouse
 from infi.systray import SysTrayIcon
 from datetime import datetime
 from PIL import ImageGrab
-import requests, os
+import requests, os, threading
 
 import base64
 
 app = Flask(__name__,template_folder='.')
 CORS(app)
 
+mouse_thread = None
 sessionId = ''
 session_data = {}
 
 def on_click(x, y, button, pressed):
     global sessionId
 
-    if pressed:
+    if pressed and 'mouseClicks' in session_data:
         print(f'Mouse clicked at ({x}, {y}) with {button}')
         timestamp = datetime.utcnow().strftime('%Y-%m-%dT%H-%M-%S.%fZ')
         click_type = str(button).split('.')[1].capitalize()
@@ -41,17 +42,21 @@ def on_click(x, y, button, pressed):
             "yLocation": y,
             "filePath": screenshot_path
         })
-        
 
-mouse_listener = mouse.Listener(on_click=on_click)
+def start_mouse_thread():
+    with mouse.Listener(on_click=on_click) as listener:
+        listener.join()
 
 @app.route('/start-session', methods=['GET'])
 def handle_start():
     global session_data
     global sessionId
+    global mouse_thread
 
     sessionId = request.args.get('id')
-    mouse_listener.start()
+    if not mouse_thread or not mouse_thread.is_alive():
+        mouse_thread = threading.Thread(target=start_mouse_thread)
+        mouse_thread.start()
     session_data = {
         'sessionId': sessionId,
         'startedAt': datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
@@ -63,11 +68,13 @@ def handle_start():
 def handle_end():
     global session_data
     global sessionId
+    global mouse_thread
 
     session_data['endedAt'] = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%fZ')
     response = requests.put('https://appili.gives/items', json=session_data)
     session_data, sessionId = {}, ''
-    mouse_listener.stop()
+    if mouse_thread and mouse_thread.is_alive():
+        mouse_thread.join(timeout=0)
     return '200'
 
 @app.route('/get-image')

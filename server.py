@@ -85,6 +85,10 @@ def handle_image():
     with open(screenshot_path, "rb") as image_file:
         base64_encoded = base64.b64encode(image_file.read())
         return base64_encoded.decode("utf-8")  
+    
+@app.route('/health-check')
+def handle_health():
+    return '200'      
 
 @app.route('/')
 def index():

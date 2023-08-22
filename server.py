@@ -5,7 +5,6 @@ from infi.systray import SysTrayIcon
 from datetime import datetime
 from PIL import ImageGrab
 import requests, os, threading
-
 import base64
 
 app = Flask(__name__,template_folder='.')
@@ -72,7 +71,7 @@ def handle_end():
 
     session_data['endedAt'] = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%fZ')
     response = requests.put('https://appili.gives/items', json=session_data)
-    session_data, sessionId = {}, ''
+    session_data,sessionId = {}, ''
     if mouse_thread and mouse_thread.is_alive():
         mouse_thread.join(timeout=0)
     return '200'
@@ -85,7 +84,29 @@ def handle_image():
     with open(screenshot_path, "rb") as image_file:
         base64_encoded = base64.b64encode(image_file.read())
         return base64_encoded.decode("utf-8")  
-    
+
+@app.route('/delete-images', methods=['GET'])
+def delete_images():
+    session_id = request.args.get('id')
+
+    if session_id:
+        images_folder = os.path.join(os.getcwd(), 'screenshots', session_id)
+
+        if os.path.exists(images_folder):
+            try:
+                for file_name in os.listdir(images_folder):
+                    file_path = os.path.join(images_folder, file_name)
+                    if os.path.isfile(file_path):
+                        os.remove(file_path)
+                os.rmdir(images_folder)  # Remove the folder itself
+                return 'Images deleted successfully'
+            except Exception as e:
+                return f'Error deleting images: {str(e)}'
+        else:
+            return 'Images folder not found'
+    else:
+        return 'Session ID not provided'
+   
 @app.route('/health-check')
 def handle_health():
     return '200'      
